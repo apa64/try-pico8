@@ -1,7 +1,7 @@
 pico-8 cartridge // http://www.pico-8.com
 version 27
 __lua__
--- scroller
+-- scroller1
 -- by apa
 
 -- consts
