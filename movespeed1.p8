@@ -2,7 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 27
 __lua__
 -- try move speeds
--- by apa
+-- by apa64
 function _init()
   speed = 5
   x = 5

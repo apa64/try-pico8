@@ -2,7 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 27
 __lua__
 -- hello world
--- by apa
+-- by apa64
 text="hello world from variable"
 print("hello world from print")
 print(text)

@@ -2,7 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 27
 __lua__
 -- greenfield
--- by apa
+-- by apa64
 function _init()
 	p = {}
 	p.spr = 3

@@ -1,8 +1,8 @@
 pico-8 cartridge // http://www.pico-8.com
 version 27
 __lua__
--- template
--- by apa
+-- boilerplate template
+-- by apa64
 
 -- consts
 left, right, up, down, fire1, fire2 = 0, 1, 2, 3, 4, 5

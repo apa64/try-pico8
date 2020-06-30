@@ -2,7 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 27
 __lua__
 -- testing functions
--- by apa
+-- by apa64
 function gettext()
   local retval = "hello from gettext()"
   return retval
