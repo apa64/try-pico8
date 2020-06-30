@@ -24,6 +24,7 @@ Trying out [PICO-8](https://www.lexaloffle.com/pico-8.php). All kinds of practic
 TODO:
 - Lua formatter plugin?
 - Lua lint plugin?
+- BBS carts go to `pico8/home/bbs` instead of `pico8carts/bbs`!!
 
 ## CI/CD / Release Pipeline
 
