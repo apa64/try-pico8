@@ -2,7 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 27
 __lua__
 -- scroller2
--- by apa
+-- by apa64
 
 -- consts
 left, right, up, down, fire1, fire2 = 0, 1, 2, 3, 4, 5
@@ -13,7 +13,11 @@ function _init()
     -- palsorted index
     pal_background = 2
     pal_text = 13
-    init_scroller()
+    -- print location
+    x = 4
+    y = 60
+    scroller = init_scroller("lorem ipsum dolor sit amet, consectetur... ", 30, 5/30)
+    --scroller = init_scroller("lorem...", 30, 3/30)
     -- debug print
     debug = true
 end
@@ -22,62 +26,64 @@ function _update()
     update_scroller()
     update_colour()
     update_speed()
+    if (btnp() != 0) then
+        sfx(0)
+    end
 end
 
 function _draw()
     cls(palsorted[pal_background])
-    draw_scroller(palsorted[pal_text])
+    print("scroller2 by apa", 32, 2, light_gray)
+    print("⬅️➡️ text color", 34, 8, light_gray)
+    print("⬆️⬇️ bkg color", 36, 14, light_gray)
+    print("❎🅾️ scroll speed", 30, 20, light_gray)
+    draw_scroller(x, y, palsorted[pal_text])
     if (debug) draw_debug()
 end
 
 -->8
 -- ######################## init
 
-function init_scroller()
-    -- scroller contents
-    scroller = {}
-    -- print location
-    scroller.x = 4
-    scroller.y = 60
-    scroller.speed = 3/30
-    scroller.width = 30             -- field width in characters 
+-- initializes scroller
+-- params: text to print, field width in characters, scrolling speed
+function init_scroller(text, width, speed)
+    local scroller = {}
+    scroller.speed = speed
+    scroller.width = width
     scroller.pos = scroller.width   -- print start position
-    scroller.text = ""
+    scroller.text = text
     scroller.state = "init"
-    -- text to show
-    text = {}
-    text.t = "12345"
-    text.t = "lorem ipsum dolor sit amet, consectetur... " -- adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-    text.i = 1
-    text.iend = 1
+    scroller.i = 1
+    scroller.iend = 1
+    return scroller
 end
 
 -->8
 -- ###################### update
 
--- updates scroller pos, text and text i, iend
+-- updates scroller pos, text, i, iend
 function update_scroller()
     --if (text.iend < scroller.width and text.iend < #text.t) then
     if (scroller.pos >= 1) then
         -- scrolling in from right side, not fully visible
         scroller.state = "coming in"
-        scroller.pos = (scroller.pos - scroller.speed) % (scroller.width + 1)
-        text.i = 1
-        if (text.iend < #text.t) text.iend += scroller.speed
-    elseif (text.i < #text.t + 1) then  -- +1 to allow i to work thru last letter
+        scroller.pos -= scroller.speed
+        if (scroller.iend < #scroller.text) scroller.iend = scroller.width - flr(scroller.pos)
+    elseif (scroller.i < #scroller.text + 1) then  -- +1 to allow i to work thru last letter
         -- text on left edge, decreasing
         scroller.state = "going out"
         scroller.pos = 0
-        text.i += scroller.speed
-        -- BUG: with #text.t>scroller.width the last letter will flash outside of width
-        if (text.iend < #text.t) text.iend += scroller.speed
+        scroller.i += scroller.speed
+        if (scroller.iend < #scroller.text) scroller.iend = flr(scroller.i) + scroller.width - 1
     else
         -- reset to restart from state 1
+        -- BUG: flashes once the first letter right side out of field
         scroller.state = "reset"
         scroller.pos = scroller.width
-        text.iend = 1
+        scroller.i = 1
+        scroller.iend = 1
     end
-    scroller.text = sub(text.t, flr(text.i), flr(text.iend))
+    scroller.subtext = sub(scroller.text, flr(scroller.i), flr(scroller.iend))
 end
 
 -- cycle colors with direction keys
@@ -99,15 +105,17 @@ end
 -->8
 -- ######################## draw
 
-function draw_scroller(color)
-    print(scroller.text, scroller.x + flr(scroller.pos)*4, scroller.y, color)
+-- draws scroller text
+-- params: x, y and color for print
+function draw_scroller(x, y, color)
+    print(scroller.subtext, x + flr(scroller.pos)*4, y, color)
 end
 
 -- print debug info
 function draw_debug()
     print("state:"..scroller.state,0,111,red)
-    print("bkg:"..pal_background..",txt:"..pal_text..",pos:"..scroller.pos, 0, 117, pink)
-    print("spd:"..scroller.speed..",i:"..text.i..",iend:"..text.iend, 0, 123, pink)
+    print("bkg:"..pal_background..", txt:"..pal_text..", spd:"..scroller.speed, 0, 117, pink)
+    print("pos:"..scroller.pos..", i:"..scroller.i..", iend:"..scroller.iend, 0, 123, pink)
 end
 
 __gfx__
@@ -117,3 +125,6 @@ __gfx__
 00077000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00077000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00700700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+__sfx__
+000100000506007000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000200000c00011000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
