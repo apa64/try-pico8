@@ -33,9 +33,10 @@ function _draw()
 end
 
 -- updates scroller_text and text_index
+-- bug: does not work properly with text shorter than scroller_width
 function update_scroller_text()
     scroller_text = ""
-    -- pad to start text from the right edge
+    -- TODO: pad to start text from the right edge
     if (false and text_index < scroller_width) then
         pad = ""
         for i = 1,(scroller_width - flr(text_index)) do
@@ -43,7 +44,7 @@ function update_scroller_text()
         end
         scroller_text = pad
     end
-    
+
     text_index_end = flr(text_index + scroller_width - 1)
     scroller_text = scroller_text .. sub(text, text_index, text_index_end)
 
