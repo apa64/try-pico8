@@ -6,7 +6,7 @@ __lua__
 
 -- todo:
 -- title screen with instructions
--- 3x3 playing field cell matrix table
+-- function(s) to manage the field
 -- game state:
 --   select_cell
 --     --> check_valid
@@ -14,79 +14,110 @@ __lua__
 --     --> change_player
 --       --> select_cell
 
--- cells:
+-- cursor cell
+local cursor_x = 2
+local cursor_y = 2
+
+-- width/height of a cell
+local cell_width = 32
+-- playing field
+local field = {}
+-- field coords
 -- 16,16 48,16 80,16
 -- 16,48 48,48 80,48
 -- 16,80 48,80 80,80
--- sprite x: 56,0
--- sprite o: 64,0
-
-cell_width = 32
-o_screen_x = 48
-o_screen_y = 16
-x_screen_x = 16
-x_screen_y = 16
+-- top right of first cell
+local field_x0 = 16
+local field_y0 = 16
+-- top right of last cell
+local field_x1 = field_x0 + 2*cell_width
+local field_y1 = field_y0 + 2*cell_width
 
 function _init()
-  selected_x = 1
-  selected_y = 1
+  -- init 3x3 field with coords
+  for x = field_y0, field_y1, cell_width do
+    row = {}
+    for y = field_x0, field_x1, cell_width do
+      local cell = {}
+      cell.x = x
+      cell.y = y
+      cell.mark = nil -- nil, x, o
+      add(row, cell)
+    end
+    add(field, row)
+  end
 end
 
+-->8
+-- ###################### update
+
 function _update()
+  -- move cursor
   if btnp(0) then
-    selected_x = (selected_x - 1) % 3
+    cursor_x = (cursor_x - 1) % 4
+    if (cursor_x == 0) cursor_x = 3
   end
   if btnp(1) then
-    selected_x = (selected_x + 1) % 3
+    cursor_x = (cursor_x + 1) % 4
+    if (cursor_x == 0) cursor_x = 1
   end
   if btnp(2) then
-    selected_y = (selected_y - 1) % 3
+    cursor_y = (cursor_y - 1) % 4
+    if (cursor_y == 0) cursor_y = 3
   end
   if btnp(3) then
-    selected_y = (selected_y + 1) % 3
+    cursor_y = (cursor_y + 1) % 4
+    if (cursor_y == 0) cursor_y = 1
   end
-  selected_screen_x = 16 + selected_x*cell_width
-  selected_screen_y = 16 + selected_y*cell_width
+  -- select the coords under box
   if (btnp(4)) then
-    o_screen_x = selected_screen_x
-    o_screen_y = selected_screen_y
+    field[cursor_x][cursor_y]["mark"] = "o"
   end
   if (btnp(5)) then
-    x_screen_x = selected_screen_x
-    x_screen_y = selected_screen_y
+    field[cursor_x][cursor_y]["mark"] = "x"
   end
 end
+
+-->8
+-- ######################## draw
 
 function _draw()
   cls(5)
+  -- playing field
   map(0, 0, 16, 16, 12, 12)
+  -- ui texts
   print("player: x", 48, 7, 7)
   print("wins: x 00 - o 00", 30, 116, 7)
-  sspr(56, 0, 8, 8, x_screen_x + 8, x_screen_y + 8, 16, 16)
-  sspr(64, 0, 8, 8, o_screen_x + 8, o_screen_y + 8, 16, 16)
 
-  rect(selected_screen_x + 1,selected_screen_y + 1, selected_screen_x + cell_width - 2, selected_screen_y + cell_width - 2, 7)
-  
+  draw_field()
+  draw_cursor()
+  -- debug
+  print("cx:"..cursor_x..",cy:"..cursor_y..",mark:"..tostr(field[cursor_x][cursor_y]["mark"]), 0, 122, 14)
 end
 
-function draw_cell(x, y)
-  local s = {}
-s.cor_x = 8
-s.cor_y = 0
-s.hor_x = 16
-s.hor_y = 0
-s.ver_x = 24
-s.ver_y = 0
-
-  sspr(s.cor_x, s.cor_y, 8, 8,  0*x,  0*y, 8, 8)
-  sspr(s.hor_x, s.hor_y, 8, 8,  8*x,  0, 8, 8)
-  sspr(s.cor_x, s.cor_y, 8, 8, 16*x,  0, 8, 8, true)
-  sspr(s.ver_x, s.ver_y, 8, 8,  0*x,  8, 8, 8)
-  sspr(s.ver_x, s.ver_y, 8, 8, 16*x,  8, 8, 8, true)
-  sspr(s.cor_x, s.cor_y, 8, 8,  0*x, 16, 8, 8, false, true)
-  sspr(s.hor_x, s.hor_y, 8, 8,  8*x, 16, 8, 8, false, true)
-  sspr(s.cor_x, s.cor_y, 8, 8, 16*x, 16, 8, 8, true, true)
+-- draws the cursor box
+function draw_cursor()
+  -- current cell x,y
+  local x = field[cursor_x][cursor_y]["x"]
+  local y = field[cursor_x][cursor_y]["y"]
+  rect(x + 1, y + 1, x + cell_width - 2, y + cell_width - 2, 7)
 end
+
+function draw_field()
+  foreach(field, function(row)
+    foreach(row, function(cell)
+      if (cell.mark == "x") then
+        -- sprite x: 56,0
+        sspr(56, 0, 8, 8, cell.x + 8, cell.y + 8, 16, 16)
+      elseif (cell.mark == "o") then
+        -- sprite o: 64,0
+        sspr(64, 0, 8, 8, cell.x + 8, cell.y + 8, 16, 16)
+      end
+    end)
+  end
+  )
+end
+
 __gfx__
 00000000000000000000000000066000000000000006600000066000700000070077770000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000066000000000000006600000066000070000700700007000000000000000000000000000000000000000000000000000000000
