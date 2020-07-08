@@ -6,15 +6,9 @@ __lua__
 
 -- todo:
 -- title screen with instructions
--- function(s) to manage the field
--- game state:
---   select_cell
---     --> check_valid
---     --> check_victory
---     --> change_player
---       --> select_cell
+-- test with scores > 9
 
--- cursor cell
+-- cursor cell, index to field: 1,2,3
 local cursor_x = 2
 local cursor_y = 2
 
@@ -32,11 +26,26 @@ local field_y0 = 16
 -- top right of last cell
 local field_x1 = field_x0 + 2*cell_width
 local field_y1 = field_y0 + 2*cell_width
+-- game states
+gs_selecting, gs_win, gs_draw = 0, 1
+-- current state
+local gamestate = gs_selecting
+-- player marks
+player_o, player_x = 0, 1
+-- current player mark
+local current_player = player_o
+-- count moves
+local moves = 0
+local score = {}
+score.o = 0
+score.x = 0
 
 function _init()
+  moves = 0
   -- init 3x3 field with coords
+  field = {}
   for x = field_y0, field_y1, cell_width do
-    row = {}
+    local row = {}
     for y = field_x0, field_x1, cell_width do
       local cell = {}
       cell.x = x
@@ -46,36 +55,79 @@ function _init()
     end
     add(field, row)
   end
+  gamestate = gs_selecting
 end
 
 -->8
 -- ###################### update
 
 function _update()
-  -- move cursor
-  if btnp(0) then
-    cursor_x = (cursor_x - 1) % 4
-    if (cursor_x == 0) cursor_x = 3
+  if (gamestate == gs_selecting) then
+    -- move cursor
+    if btnp(0) then
+      cursor_x = (cursor_x - 1) % 4
+      if (cursor_x == 0) cursor_x = 3
+    end
+    if btnp(1) then
+      cursor_x = (cursor_x + 1) % 4
+      if (cursor_x == 0) cursor_x = 1
+    end
+    if btnp(2) then
+      cursor_y = (cursor_y - 1) % 4
+      if (cursor_y == 0) cursor_y = 3
+    end
+    if btnp(3) then
+      cursor_y = (cursor_y + 1) % 4
+      if (cursor_y == 0) cursor_y = 1
+    end
+    -- put a mark to cursor current cell
+    if (btnp(4) or btnp(5)) then
+      --  check validity
+      if (field[cursor_x][cursor_y]["mark"] == nil) then
+        field[cursor_x][cursor_y]["mark"] = current_player
+        moves += 1
+        -- check victory
+        if (check_victory(cursor_x, cursor_y)) then
+          -- current_player wins
+          gamestate = gs_win
+          local plr = (current_player == player_o) and "o" or "x"
+          score[plr] += 1
+        elseif (moves == 9) then
+          gamestate = gs_draw
+        else
+          -- switch player
+          current_player = (current_player + 1) % 2
+        end
+      end
+    end
+  else -- gs_draw or gs_win
+    if (btnp(4) or btnp(5)) then
+      -- switch player
+      current_player = (current_player + 1) % 2
+      -- restart
+      _init()
+    end
   end
-  if btnp(1) then
-    cursor_x = (cursor_x + 1) % 4
-    if (cursor_x == 0) cursor_x = 1
+end
+
+-- checks if the last move was victory
+-- params: last move x, y
+function check_victory(x, y)
+  local mark = field[x][y]["mark"]
+  if (field[1][y]["mark"] == mark and field[2][y]["mark"] == mark and field[3][y]["mark"] == mark) then
+    -- horizontal row win
+    return true
+  elseif (field[x][1]["mark"] == mark and field[x][2]["mark"] == mark and field[x][3]["mark"] == mark) then
+    --- vertical column win
+    return true
   end
-  if btnp(2) then
-    cursor_y = (cursor_y - 1) % 4
-    if (cursor_y == 0) cursor_y = 3
+  -- diagonals
+  if (field[1][1]["mark"] == mark and field[2][2]["mark"] == mark and field[3][3]["mark"] == mark) then
+    return true
+  elseif (field[3][1]["mark"] == mark and field[2][2]["mark"] == mark and field[1][3]["mark"] == mark) then
+    return true
   end
-  if btnp(3) then
-    cursor_y = (cursor_y + 1) % 4
-    if (cursor_y == 0) cursor_y = 1
-  end
-  -- select the coords under box
-  if (btnp(4)) then
-    field[cursor_x][cursor_y]["mark"] = "o"
-  end
-  if (btnp(5)) then
-    field[cursor_x][cursor_y]["mark"] = "x"
-  end
+  return false
 end
 
 -->8
@@ -83,16 +135,39 @@ end
 
 function _draw()
   cls(5)
-  -- playing field
-  map(0, 0, 16, 16, 12, 12)
-  -- ui texts
-  print("player: x", 48, 7, 7)
-  print("wins: x 00 - o 00", 30, 116, 7)
-
+  draw_ui()
   draw_field()
-  draw_cursor()
-  -- debug
-  print("cx:"..cursor_x..",cy:"..cursor_y..",mark:"..tostr(field[cursor_x][cursor_y]["mark"]), 0, 122, 14)
+  if (gamestate == gs_selecting) draw_cursor()
+end
+
+-- draws ui texts
+function draw_ui()
+  local current_player_str = (current_player == player_o) and "o" or "x"
+  if (gamestate == gs_win) then
+    print(current_player_str.." wins!", 51, 7, 8)
+  elseif (gamestate == gs_draw) then
+    print("draw!", 55, 7, 10)
+  else -- gs_selecting
+    print("player: "..current_player_str, 48, 7, 7)
+  end
+  print("score: x: "..score.x.." - o: "..score.o, 30, 116, 7)
+end
+
+-- draws the playing field and state
+function draw_field()
+  map(0, 0, 16, 16, 12, 12)
+  foreach(field, function(row)
+    foreach(row, function(cell)
+      if (cell.mark == player_x) then
+        -- sprite x: 56,0
+        sspr(56, 0, 8, 8, cell.x + 8, cell.y + 8, 16, 16)
+      elseif (cell.mark == player_o) then
+        -- sprite o: 64,0
+        sspr(64, 0, 8, 8, cell.x + 8, cell.y + 8, 16, 16)
+      end
+    end)
+  end
+  )
 end
 
 -- draws the cursor box
@@ -101,21 +176,6 @@ function draw_cursor()
   local x = field[cursor_x][cursor_y]["x"]
   local y = field[cursor_x][cursor_y]["y"]
   rect(x + 1, y + 1, x + cell_width - 2, y + cell_width - 2, 7)
-end
-
-function draw_field()
-  foreach(field, function(row)
-    foreach(row, function(cell)
-      if (cell.mark == "x") then
-        -- sprite x: 56,0
-        sspr(56, 0, 8, 8, cell.x + 8, cell.y + 8, 16, 16)
-      elseif (cell.mark == "o") then
-        -- sprite o: 64,0
-        sspr(64, 0, 8, 8, cell.x + 8, cell.y + 8, 16, 16)
-      end
-    end)
-  end
-  )
 end
 
 __gfx__
