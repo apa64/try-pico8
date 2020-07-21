@@ -29,55 +29,85 @@ SOFTWARE.
 --]]
 
 -- consts
-left, right, up, down, fire1, fire2 = 0, 1, 2, 3, 4, 5
-black, dark_blue, dark_purple, dark_green, brown, dark_gray, light_gray, white, red, orange, yellow, green, blue, indigo, pink, peach = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+b = {
+  left  = 0, -- ⬅️
+  right = 1, -- ➡️
+  up    = 2, -- ⬆️
+  down  = 3, -- ⬇️
+  fire1 = 4, -- 🅾️
+  fire2 = 5  -- ❎
+}
+c = {
+  black         = 0,
+  dark_blue     = 1,
+  dark_purple   = 2,
+  dark_green    = 3,
+  brown         = 4,
+  dark_gray     = 5,
+  light_gray    = 6,
+  white         = 7,
+  red           = 8,
+  orange        = 9,
+  yellow        = 10,
+  green         = 11,
+  blue          = 12,
+  indigo        = 13,
+  pink          = 14,
+  peach         = 15
+}
 palsorted = { 0, 5, 6, 7, 15, 14, 8, 2, 4, 9, 10, 11, 3, 12, 13, 1 }
 
+-- define sprites here - note: probably not for oop
+sprites = {}
+-- sprites.sprite_name = 0
+-- define sounds here - note: probably not for oop
+sounds = {}
+-- sounds.sound_name = 0
 function _init() menu_init() end
 
 function menu_init()
-    _update = menu_update
-    _draw = menu_draw
+  _update = menu_update
+  _draw = menu_draw
 end
 
 function menu_update()
-    if (btnp(🅾️)) game_init() -- play the game
+  if (btnp(b.fire1)) game_init() -- change state to play the game
 end
 
 function menu_draw()
-    print("menu!")  -- menu draw code
+  print("menu! ", c.green)  -- menu draw code
 end
 
 -->8
 -- ######################## game
 
 function game_init()
-    _update = game_update
-    _draw = game_draw
+  _update = game_update
+  _draw = game_draw
 end
 
 function game_update()
-    if (btnp(🅾️)) gameover_init() -- game over
+  if (btnp(b.fire1)) gameover_init() -- change state to game over
 end
 
 function game_draw()
-    print("game!")  -- game draw code
+  print("game! "..t(), c.yellow)  -- game draw code
 end
 
 -->8
 -- ################### game over
 
 function gameover_init()
-    _update = gameover_update
-    _draw = gameover_draw
+  _update = gameover_update
+  _draw = gameover_draw
 end
 
 function gameover_update()
-    if (btnp(🅾️)) menu_init() -- back to menu
+  if (btnp(b.fire1)) menu_init() -- change state to back to menu
 end
 
 function gameover_draw()
-    print("game over!")  -- game over code
+  print("game over! ", c.red)  -- game over code
 end
 
 __gfx__
