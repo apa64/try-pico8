@@ -2,9 +2,7 @@
 
 Trying out [PICO-8](https://www.lexaloffle.com/pico-8.php). All kinds of practice projects here.
 
-## Local Dev Env
-
-### Dir Structure and Files
+## Local Dev Env Dir Structure and Files
 
 - `%USERPROFILE%/pico8carts` - root_path, subdirs: git repos, `bbs`, `demos`, `games`
   - `robocopy_backup_repos.bat` - backup git repos to Google Drive home without `.git` directory
@@ -17,7 +15,7 @@ Trying out [PICO-8](https://www.lexaloffle.com/pico-8.php). All kinds of practic
 
     start "pico8" /B pico8.exe -home ./home/ -desktop ./desktop/ -root_path %USERPROFILE%/pico8carts/ %*
 
-### Editor
+## Editor
 
 [Visual Studio Code](https://code.visualstudio.com/) with [pico8vscodeeditor](https://marketplace.visualstudio.com/items?itemName=Grumpydev.pico8vscodeeditor) plugin.
 
